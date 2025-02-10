@@ -18,8 +18,8 @@ int leapYears = 0;
 
 void printDate(struct date);
 void readDate(struct date *);
-int daysPassedFunct(struct date *, struct date *, int *leapDays);
-void daysToYMD(int, float, int, int);
+int daysPassedFunct(struct date *, struct date *);
+void daysToYMD(int, float);
 int isLeapYear(int);
 float averageDays();
 int valiDate(struct date *);
@@ -37,9 +37,7 @@ int main() {
     dateX->day = 1; //1 Jan 2024 is Monday
     dateX->month = 1;
     dateX->year = 2024; //I'll be counting: a(date differece between date1 and dateX) + b(date differece between dateX and date2)
-
-    int leapDays1, leapDays2 = 0; //amount of leap days in first and second time periods
-
+    
     printf("Enter the first date (Format: DD MM YYYY): ");
     readDate(&date1);
     if (!valiDate(&date1)) {
@@ -52,8 +50,8 @@ int main() {
         return -1;
     }
     
-    a = daysPassedFunct(&date1, dateX, &leapDays1);
-    b = daysPassedFunct(dateX, &date2, &leapDays2);
+    a = daysPassedFunct(&date1, dateX);
+    b = daysPassedFunct(dateX, &date2);
    
     int daysPassedInt = a + b;
 
@@ -62,7 +60,7 @@ int main() {
     
     alternativeTimeUnits(daysPassedInt);
     
-    daysToYMD(daysPassedInt, avgDays, leapDays1, leapDays2);
+    daysToYMD(daysPassedInt, avgDays);
     
     printDate(date1);
     dayOfWeek(- 1 * a);
@@ -82,7 +80,50 @@ void printDate(struct date x) {
 }
 
 
-int daysPassedFunct(struct date *date1, struct date *date2, int *leapDays) {
+int daysPassedFunct(struct date *date1, struct date *date2) {
+    int daysPassed = 0;
+    
+    //case 1: same date
+    if (date1->day == date2->day && date1->month == date2->month && date1->year == date2->year) {
+        return daysPassed;
+    }
+    
+    //case 2: date1 < date2
+    else if ((date1->year < date2->year) || (date1->month < date2->month && date1->year == date2->year) || (date1->day < date2->day && date1->month == date2->month && date1->year == date2->year)) {
+        //days
+        int daysInMonthLeft, m, y = 0;
+        daysInMonthLeft = daysInMonth[date1->month + 1] - date1->day;
+        printf("daysInMonthLeft : %d", daysInMonthLeft);
+        daysPassed = daysInMonthLeft + date2->day;
+        printf("daysPassed = daysInMonthLeft + date2->day: %d", daysPassed);
+        //months
+        for (m; date1->month < date2->month; m++) {
+            daysPassed += daysInMonth[m +1];
+            //NOT checking for leap months yet
+            printf("daysPassed months loop: %d", daysPassed);
+        }
+        
+        //years
+        for (y; date1->year < date2->year; y++) {
+            daysPassed += 365;
+            //NOT checking for leap years yet
+            printf("daysPassed months loop: %d", daysPassed);
+        }
+        
+        
+        return daysPassed;
+    }
+    
+    else { //case 3: date1 > date2, swap dates
+        daysPassed = daysPassedFunct(date2, date1);
+        return daysPassed * -1;
+    }
+
+}
+
+//R.I.P.
+/*
+int daysPassedFunctOld(struct date *date1, struct date *date2) {
     int daysPassed = 0;
     
     //case 1: same date
@@ -128,14 +169,12 @@ int daysPassedFunct(struct date *date1, struct date *date2, int *leapDays) {
                 daysPassed++; //create a function that will for a negative num do -- and for pos ++
                 leapYears++;
             }
-        }
-        // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    
         //account for 29th Feb
         if (isLeapYear(date1->year)  && ((date1->day <= 29 && date1->month == 2) || (date1->month ==1))) { //if leap year && date1 before 29 Feb
             if ((date2->day == 29 && date2->month == 2) || (date2->month >= 3) || (date2->year > date1->year)) { //if date2 is after or equal to 29th Feb
                 daysPassed++;
                 leapYears++;
-            } //!!!!!!!!!!!!!!!
         }
         
 
@@ -147,26 +186,24 @@ int daysPassedFunct(struct date *date1, struct date *date2, int *leapDays) {
         }
             return daysPassed;
     }
-
     else {
-        daysPassed = daysPassedFunct(date2, date1, leapDays); //swap dates and call recursively
+        daysPassed = daysPassedFunct(date2, date1);
         return daysPassed * -1;
     }
-
-    *leapDays = leapYears; 
 }
+*/
 
 
 int isLeapYear(int x) {
     int answer = (x % 4 == 0 && x % 100 != 0) || (x % 400 == 0); //ternary conditional operator again
-    printf("isLeapYear: %d year %d \n", answer, x);
+    printf("isLeapYear: %d\n", answer);
     return answer;
 }
     /* According to the Gregorian calendar, most years divisible by 4 are leap years,
     but not all. Years that are divisible by 100 are not leap years, except for years
     that are also divisible by 400. */
 
-void daysToYMD(int daysPassed, float averageDays, int leapDays1, int leapDays2) {
+void daysToYMD(int daysPassed, float averageDays) {
     //pass date1 date 2, loop isLeapYear
     struct date *difference = (struct date *)malloc(sizeof(struct date));
     if (difference == NULL) {
@@ -201,8 +238,7 @@ float averageDays () {
     for (int i=0; i<4; i++) {
         x += 365;
     }
-    // !!!!!!!!!!!!!!!!!!!!   don't add leap days here, add them at the end
-    //x++; //29 Feb
+    x++; //29 Feb
     y = ((float)x/48.0); //48 = 12 months * 4 years from the for loop
     printf("Average days in month, including leap year: %f\n\n", y);
     return y;
@@ -240,6 +276,7 @@ int valiDate(struct date *x) {
         }
         return 1;
     }
+    
     else if (regexExecution == REG_NOMATCH) {
         fprintf(stderr, "Invalid date format.\n");
     } else {
@@ -262,14 +299,4 @@ void alternativeTimeUnits(int daysPassed) {
     printf("It is %lld minutes\n", daysPassedLong);
     daysPassedLong *= 60;
     printf("It is %lld seconds\n", daysPassedLong);
-}
-
-int plusPlus(int x, int plusOrMinus) { //it could be pays++ or days--, i should account for both. use another int plusOrMinus to indicate that?
-    if (x > 0) {
-        return (plusOrMinus > 0) ? (x + 1) : (x - 1);
-    } else if (x < 0) {
-        return (plusOrMinus > 0) ? (x - 1) : (x + 1);
-    } else {
-        return -1;
-    }
 }
