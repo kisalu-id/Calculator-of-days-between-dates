@@ -89,29 +89,42 @@ int daysPassedFunct(struct date *date1, struct date *date2) {
     }
     
     //case 2: date1 < date2
-    else if ((date1->year < date2->year) || (date1->month < date2->month && date1->year == date2->year) || (date1->day < date2->day && date1->month == date2->month && date1->year == date2->year)) {
+    else if ((date1->year < date2->year) || 
+    (date1->month < date2->month && date1->year == date2->year) || 
+    (date1->day < date2->day && date1->month == date2->month && date1->year == date2->year)) {
         //days
         int daysInMonthLeft, m, y = 0;
+        m = date1->month;
+        y = date1->year; 
         daysInMonthLeft = daysInMonth[date1->month + 1] - date1->day;
-        printf("daysInMonthLeft : %d", daysInMonthLeft);
+        printf("daysInMonthLeft : %d\n", daysInMonthLeft);
+        
         daysPassed = daysInMonthLeft + date2->day;
-        printf("daysPassed = daysInMonthLeft + date2->day: %d", daysPassed);
-        //months
-        for (m; date1->month < date2->month; m++) {
+        printf("daysPassed = daysInMonthLeft + date2->day: %d\n", daysPassed);
+        
+        //adding days in each month in each year
+        while ((m < date2->month && y == date2->year) ||
+        y < date2->year) {                            //until the loop reaches date2->year and date2->month, then return return daysPassed
             daysPassed += daysInMonth[m +1];
             //NOT checking for leap months yet
-            printf("daysPassed months loop: %d", daysPassed);
+            printf("daysPassed months loop: %d\n", daysPassed);
+            m++;
+            if (m < 12) {
+                m = 1;
+                y++;
+            }
+            if (y == date2->year && m == date2->month) {
+                return daysPassed;
+            }
         }
-        
+        /*
         //years
         for (y; date1->year < date2->year; y++) {
             daysPassed += 365;
             //NOT checking for leap years yet
             printf("daysPassed months loop: %d", daysPassed);
         }
-        
-        
-        return daysPassed;
+        */
     }
     
     else { //case 3: date1 > date2, swap dates
@@ -120,78 +133,6 @@ int daysPassedFunct(struct date *date1, struct date *date2) {
     }
 
 }
-
-//R.I.P.
-/*
-int daysPassedFunctOld(struct date *date1, struct date *date2) {
-    int daysPassed = 0;
-    
-    //case 1: same date
-    if (date1->day == date2->day && date1->month == date2->month && date1->year == date2->year) {
-        return daysPassed;
-    } //case 2: date1 < date2
-    else if ( (date1->day < date2->day && date1->month == date2->month && date1->year == date2->year) || (date1->month < date2->month && date1->year == date2->year) || (date1->year < date2->year) ) {
-        //calculate day difference 
-        daysPassed += date2->day - date1->day;
-        
-        //diff month, 1<2
-        if (date1->month < date2->month && date1->year <= date2->year) {
-            daysPassed += daysInMonth[date1->month -1];
-            for (int monthi = (date1->month + 1); monthi < date2->month; monthi++) { //if month difference is >1
-                daysPassed += daysInMonth[monthi - 1];
-            }
-        }
-
-        //diff month, 1>2
-        if (date1->month > date2->month && date1->year < date2->year) { //year1 is strictly more than year2
-            daysPassed += daysInMonth[date1->month -1];
-           //count i times
-            for (int i = date1->month; i < 12; i++) { //if month difference is >1
-                daysPassed += daysInMonth[i];         //count until dec
-                //printf("daysPassed, loop2 count1: %d\n", daysPassed);
-            }
-    
-            for (int i = 1; i < date2->month; i++) { //count up to date
-                daysPassed += daysInMonth[i - 1];
-                //printf("daysPassed, loop2 count2: %d\n", daysPassed);
-            }
-        }
-        
-        //same month, 1==2 
-        if (date1->month <= date2->month && date1->year < date2->year) {
-            daysPassed += 365;
-        } 
-    
-        for (int yeari = (date1->year + 1); yeari <= (date2->year - 1); yeari++) { //for each year
-            daysPassed += 365;
-            //check for each year, if that's a leap year, if yes, add a leap day
-            if (isLeapYear(yeari)) {
-                daysPassed++; //create a function that will for a negative num do -- and for pos ++
-                leapYears++;
-            }
-    
-        //account for 29th Feb
-        if (isLeapYear(date1->year)  && ((date1->day <= 29 && date1->month == 2) || (date1->month ==1))) { //if leap year && date1 before 29 Feb
-            if ((date2->day == 29 && date2->month == 2) || (date2->month >= 3) || (date2->year > date1->year)) { //if date2 is after or equal to 29th Feb
-                daysPassed++;
-                leapYears++;
-        }
-        
-
-        if (isLeapYear(date2->year) && (date1->year != date2->year)) {
-            if ((date2->day == 29 && date2->month == 2) || (date2->month > 2) || (date2->year > (date1->year+ 1))) { //if end date is equal or after 29th Feb 
-                //daysPassed++; I already accounted for that
-                leapYears++;
-            }
-        }
-            return daysPassed;
-    }
-    else {
-        daysPassed = daysPassedFunct(date2, date1);
-        return daysPassed * -1;
-    }
-}
-*/
 
 
 int isLeapYear(int x) {
